@@ -30,8 +30,10 @@ jobs:
         shell: pwsh
         run: |
           Get-ChildItem public -Filter *.js | ForEach-Object { node --check $_.FullName }
-      - name: Progress graph checks
-        run: node test_progress.cjs
+      - name: Frontend behavior checks
+        run: |
+          node test_branding.cjs
+          node test_progress.cjs
       - name: Build and verify source package
         run: |
           python package_dashboard.py

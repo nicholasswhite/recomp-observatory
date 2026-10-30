@@ -1,8 +1,63 @@
 'use strict';
 let brandingTarget=null,brandingRevision=0;
+const titleBoundsCache=new Map();
+const TITLE_PROBE_LIMIT=512,TITLE_OUTPUT_WIDTH=1200,TITLE_OUTPUT_HEIGHT=280;
 
 function localArtworkUrl(value){
   return typeof value==='string'&&/^\/artwork\/(?:custom\/[a-f0-9]{64}\.(?:jpg|png|webp)|auto\/[a-f0-9]{64}\.png)$/.test(value)?value:'';
+}
+
+function visibleAlphaBounds(pixels,width,height,threshold=2){
+  if(!pixels||!Number.isInteger(width)||!Number.isInteger(height)||width<1||height<1||pixels.length<width*height*4)return null;
+  let left=width,top=height,right=-1,bottom=-1;
+  for(let y=0,index=3;y<height;y++)for(let x=0;x<width;x++,index+=4){
+    if(pixels[index]<=threshold)continue;
+    if(x<left)left=x;if(x>right)right=x;if(y<top)top=y;if(y>bottom)bottom=y;
+  }
+  return right<left?null:{x:left,y:top,width:right-left+1,height:bottom-top+1};
+}
+
+function titleArtworkBounds(image,url){
+  if(titleBoundsCache.has(url))return titleBoundsCache.get(url);
+  const naturalWidth=image.naturalWidth||image.width,naturalHeight=image.naturalHeight||image.height;
+  if(!naturalWidth||!naturalHeight)return null;
+  const scale=Math.min(1,TITLE_PROBE_LIMIT/Math.max(naturalWidth,naturalHeight));
+  const width=Math.max(1,Math.round(naturalWidth*scale)),height=Math.max(1,Math.round(naturalHeight*scale));
+  const probe=document.createElement('canvas');probe.width=width;probe.height=height;
+  const context=probe.getContext('2d',{willReadFrequently:true});if(!context)return null;
+  context.drawImage(image,0,0,width,height);
+  const sampled=visibleAlphaBounds(context.getImageData(0,0,width,height).data,width,height);
+  if(!sampled)return null;
+  const pad=2;
+  const left=Math.max(0,Math.floor(sampled.x/scale)-pad),top=Math.max(0,Math.floor(sampled.y/scale)-pad);
+  const right=Math.min(naturalWidth,Math.ceil((sampled.x+sampled.width)/scale)+pad);
+  const bottom=Math.min(naturalHeight,Math.ceil((sampled.y+sampled.height)/scale)+pad);
+  const bounds={x:left,y:top,width:right-left,height:bottom-top};titleBoundsCache.set(url,bounds);return bounds;
+}
+
+function drawTitleArtwork(canvas,image,url){
+  const bounds=titleArtworkBounds(image,url);if(!bounds||bounds.width<1||bounds.height<1)return false;
+  const scale=Math.min(1,TITLE_OUTPUT_WIDTH/bounds.width,TITLE_OUTPUT_HEIGHT/bounds.height);
+  canvas.width=Math.max(1,Math.round(bounds.width*scale));canvas.height=Math.max(1,Math.round(bounds.height*scale));
+  const context=canvas.getContext('2d');if(!context)return false;
+  context.clearRect(0,0,canvas.width,canvas.height);
+  context.drawImage(image,bounds.x,bounds.y,bounds.width,bounds.height,0,0,canvas.width,canvas.height);
+  canvas.dataset.source=url;return true;
+}
+
+function setTitleArtworkMode(slot,heading,canvas,enabled){
+  slot.classList.toggle('has-title-art',enabled);heading.classList.toggle('visually-hidden',enabled);canvas.hidden=!enabled;
+  if(!enabled)canvas.removeAttribute('data-source');
+}
+
+function loadTitleArtwork(canvas,url,revision,onready,onfail){
+  const probe=new Image();
+  probe.onload=()=>{
+    if(revision!==brandingRevision)return;
+    try{if(!drawTitleArtwork(canvas,probe,url))throw new Error('Title artwork has no visible pixels');onready();}
+    catch{onfail();}
+  };
+  probe.onerror=()=>{if(revision===brandingRevision)onfail();};probe.src=url;
 }
 
 function loadArtwork(element,candidates,revision,onready,onfail){
@@ -29,6 +84,7 @@ function renderGameBranding(target){
   const image=document.getElementById('game-cover'),backdrop=document.getElementById('game-backdrop'),overlay=document.getElementById('game-overlay');
   const workspaceBackdrop=document.getElementById('workspace-backdrop');
   const cover=image.closest('.game-cover'),fallback=document.getElementById('cover-placeholder'),credit=document.getElementById('cover-credit');
+  const titleSlot=document.getElementById('game-title-slot'),titleHeading=document.getElementById('game-title-heading');
   document.getElementById('game-brand-line').textContent=[b.studio,b.subtitle].filter(Boolean).join(' · ');
   fallback.textContent=(target?.gameTitle||'GAME').split(/\s+/).slice(0,3).map(word=>word[0]).join('').toUpperCase();
   const coverUrl=localArtworkUrl(b.coverUrl),iconUrl=localArtworkUrl(b.iconUrl);
@@ -46,14 +102,20 @@ function renderGameBranding(target){
     fallback.hidden=true;
   },()=>{cover.classList.remove('game-icon');image.alt='';fallback.hidden=false;});
   if(!backgroundReady)loadArtwork(backdrop,[backgroundUrl],revision,()=>{workspaceBackdrop.hidden=false;},()=>{workspaceBackdrop.hidden=true;});
-  loadArtwork(overlay,[overlayUrl],revision);
+  if(overlayUrl&&overlay.dataset.source===overlayUrl&&!overlay.hidden)setTitleArtworkMode(titleSlot,titleHeading,overlay,true);
+  else{
+    setTitleArtworkMode(titleSlot,titleHeading,overlay,false);
+    if(overlayUrl)loadTitleArtwork(overlay,overlayUrl,revision,
+      ()=>setTitleArtworkMode(titleSlot,titleHeading,overlay,true),
+      ()=>setTitleArtworkMode(titleSlot,titleHeading,overlay,false));
+  }
   const source=typeof b.source==='string'&&/^https?:\/\//.test(b.source)?b.source:'';
   credit.hidden=!source;
   if(source)credit.href=source;else credit.removeAttribute('href');
   document.getElementById('artwork-game-name').textContent=target?.gameTitle||'Select a game';
 }
 
-document.addEventListener('DOMContentLoaded',()=>{
+if(typeof document!=='undefined')document.addEventListener('DOMContentLoaded',()=>{
   const el=id=>document.getElementById(id),panel=el('artwork-editor');
   el('artwork-toggle').addEventListener('click',()=>{
     panel.hidden=!panel.hidden;
@@ -86,3 +148,5 @@ document.addEventListener('DOMContentLoaded',()=>{
     catch(error){el('artwork-message').textContent=error.message;}finally{el('artwork-reset').disabled=false;}
   });
 });
+
+if(typeof module!=='undefined'&&module.exports)module.exports={localArtworkUrl,visibleAlphaBounds,setTitleArtworkMode};

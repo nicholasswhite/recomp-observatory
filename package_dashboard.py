@@ -8,7 +8,7 @@ FILES=[
     'Start Dashboard.cmd','Start Dashboard.ps1','server.py','workspace.py','adapters.py','collector.py',
     'folders.py','pathguard.py','artwork.py','ps3_metrics.py','export_progress.py','observatory.project.example.json',
     'package_dashboard.py','verify_package.py','test_artwork.py','test_collector.py','test_folder_routes.py',
-    'test_folders.py','test_pathguard.py','test_progress.cjs','test_ps3_metrics.py','test_workspace.py','test_package.py',
+    'test_folders.py','test_pathguard.py','test_branding.cjs','test_progress.cjs','test_ps3_metrics.py','test_workspace.py','test_package.py',
     'public/index.html','public/app.js','public/workspace-ui.js','public/progress.js','public/ps3-details.js',
     'public/folders.js','public/branding.js','public/style.css','public/ps3-theme.css',
 ]

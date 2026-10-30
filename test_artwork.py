@@ -124,10 +124,18 @@ class ArtworkTests(unittest.TestCase):
         hero=markup[markup.index('<div class="game-identity">'):markup.index('<a id="cover-credit"')]
         self.assertNotIn('id="game-backdrop"',hero)
         self.assertIn('id="game-overlay"',hero)
+        self.assertIn('id="game-title-slot"',hero)
+        self.assertIn('id="game-title-heading"',hero)
+        self.assertLess(hero.index('id="game-overlay"'),hero.index('id="game-title-heading"'))
         script=(public/'branding.js').read_text(encoding='utf-8')
         self.assertIn('loadArtwork(backdrop,[backgroundUrl]',script)
         self.assertNotIn('loadArtwork(backdrop,[backgroundUrl,coverUrl',script)
         self.assertIn("backdrop.getAttribute('src')===backgroundUrl",script)
+        self.assertIn('visibleAlphaBounds',script)
+        self.assertIn("heading.classList.toggle('visually-hidden',enabled)",script)
+        theme=(public/'ps3-theme.css').read_text(encoding='utf-8')
+        self.assertNotIn('.game-overlay{position:absolute',theme)
+        self.assertIn('.game-title-slot.has-title-art',theme)
     def test_active_formats_and_arbitrary_paths_are_rejected(self):
         for value in ['data:image/svg+xml;base64,PHN2Zy8+','data:image/png;base64,'+base64.b64encode(b'not an image'*3).decode()]:
             with self.assertRaises(ValueError):save_cover(value,self.root/'artwork')

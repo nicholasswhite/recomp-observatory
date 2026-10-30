@@ -11,6 +11,9 @@ function wsChoose(id){
   wsEl('module-search').value='';wsEl('processor-filter').value='all';
   const target=wsCatalog.targets.find(t=>t.id===id);
   wsEl('toolchain-badge').textContent=target?.toolchain||'No target';
+  wsEl('game-title').textContent=target?.gameTitle||'Select a game';
+  wsEl('target-subtitle').textContent=target?.toolchain||'RECOMP TARGET';
+  wsEl('attempt-description').textContent=target?.title||'Local recomp statistics and evidence.';
   wsEl('sidebar-game').textContent=target?.gameTitle||'RECOMP WORKSPACE';
   wsEl('sidebar-attempt').textContent=target?.title||'Select an attempt';
   wsEl('sidebar-path').textContent=target?.root||'';
@@ -41,12 +44,12 @@ async function initializeWorkspace(preferred){
 
 function renderTarget(d){
   const t=d.target;
-  renderGameBranding(t);
   const labels={'game-title':t.gameTitle,'sidebar-game':t.gameTitle,'sidebar-attempt':t.title,
     'sidebar-path':t.root,'attempt-description':t.title,'target-subtitle':t.toolchain,
     'footer-target':`${t.gameTitle} / ${t.title}`,'reader-description':d.capabilities.description,
     'target-status':'Observing this attempt'};
   Object.entries(labels).forEach(([id,label])=>wsEl(id).textContent=label);
+  renderGameBranding(t);
   document.title=`${t.gameTitle} · ${t.title} · Recomp Observatory`;
   document.body.classList.toggle('without-translation',!d.capabilities.translation);
   wsEl('recorded-runtime').innerHTML=d.recordedRuntime?`<strong>${d.recordedRuntime.fps.toFixed(2)} FPS · historical sample</strong><p class="metric-note">${wsEscape(d.recordedRuntime.scope)} ${d.recordedRuntime.frames??'—'} frames · ${wsEscape(time(d.recordedRuntime.recordedAt))}</p>`:'';

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark"><title>Recomp Observatory</title>
-  <link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/ps3-theme.css?v=workspace-backdrop"><script src="/branding.js?v=workspace-backdrop" defer></script><script src="/ps3-details.js" defer></script><script src="/progress.js?v=work-visibility" defer></script><script src="/workspace-ui.js?v=exclusive-panels" defer></script><script src="/folders.js" defer></script><script src="/app.js?v=work-visibility" defer></script>
+  <link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/ps3-theme.css?v=adaptive-title"><script src="/branding.js?v=adaptive-title" defer></script><script src="/ps3-details.js" defer></script><script src="/progress.js?v=work-visibility" defer></script><script src="/workspace-ui.js?v=exclusive-panels" defer></script><script src="/folders.js" defer></script><script src="/app.js?v=work-visibility" defer></script>
 </head>
 <body>
 <div class="console-atmosphere" aria-hidden="true">
@@ -36,7 +36,7 @@
   </dialog>
   <p id="selection-status" role="status" class="metric-note">Loading workspace…</p><div id="target-content" hidden>
   <section id="overview" class="section">
-    <div class="game-identity"><img id="game-overlay" class="game-overlay" alt="" aria-hidden="true" hidden><div class="page-heading"><figure class="game-cover"><img id="game-cover" hidden><span id="cover-placeholder" aria-hidden="true">GAME</span></figure><div class="game-title-block"><div class="eyebrow"><span id="target-subtitle">RECOMP TARGET</span></div><h1><span id="game-title">Select a game</span><span class="title-dot">.</span></h1><p id="game-brand-line" class="game-brand-line"></p><p class="intro"><span id="attempt-description">Local recomp statistics and evidence.</span></p></div><div class="project-status"><span class="status-ring"></span> <span><span id="target-status">Observing repository</span><small id="updated">Waiting for local evidence…</small></span></div></div>
+    <div class="game-identity"><div class="page-heading"><figure class="game-cover"><img id="game-cover" hidden><span id="cover-placeholder" aria-hidden="true">GAME</span></figure><div class="game-title-block"><div class="eyebrow"><span id="target-subtitle">RECOMP TARGET</span></div><div id="game-title-slot" class="game-title-slot"><canvas id="game-overlay" class="game-title-art" aria-hidden="true" hidden></canvas><h1 id="game-title-heading"><span id="game-title">Select a game</span><span class="title-dot">.</span></h1></div><p id="game-brand-line" class="game-brand-line"></p><p class="intro"><span id="attempt-description">Local recomp statistics and evidence.</span></p></div><div class="project-status"><span class="status-ring"></span> <span><span id="target-status">Observing repository</span><small id="updated">Waiting for local evidence…</small></span></div></div>
 <a id="cover-credit" class="cover-credit" target="_blank" rel="noopener noreferrer" hidden>Artwork source ↗</a></div>
     <div id="error-banner" class="banner error" hidden></div>
     <article class="panel overall-panel" aria-labelledby="overall-title">
