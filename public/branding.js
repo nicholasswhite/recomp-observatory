@@ -83,7 +83,8 @@ function renderGameBranding(target){
   const revision=++brandingRevision,b=target?.branding||{};
   const image=document.getElementById('game-cover'),backdrop=document.getElementById('game-backdrop'),overlay=document.getElementById('game-overlay');
   const workspaceBackdrop=document.getElementById('workspace-backdrop');
-  const cover=image.closest('.game-cover'),fallback=document.getElementById('cover-placeholder'),credit=document.getElementById('cover-credit');
+  const cover=image.closest('.side-game-art'),fallback=document.getElementById('cover-placeholder'),credit=document.getElementById('cover-credit');
+  const sidebarGame=document.getElementById('sidebar-game');
   const titleSlot=document.getElementById('game-title-slot'),titleHeading=document.getElementById('game-title-heading');
   document.getElementById('game-brand-line').textContent=[b.studio,b.subtitle].filter(Boolean).join(' · ');
   fallback.textContent=(target?.gameTitle||'GAME').split(/\s+/).slice(0,3).map(word=>word[0]).join('').toUpperCase();
@@ -91,16 +92,18 @@ function renderGameBranding(target){
   const backgroundUrl=localArtworkUrl(b.backgroundUrl),overlayUrl=localArtworkUrl(b.overlayUrl);
   const backgroundReady=Boolean(backgroundUrl)&&backdrop.getAttribute('src')===backgroundUrl&&!backdrop.hidden&&!workspaceBackdrop.hidden;
   if(!backgroundReady)workspaceBackdrop.hidden=true;
-  const iconMode=!coverUrl&&Boolean(iconUrl);
+  const preferredUrl=coverUrl||iconUrl,iconMode=!coverUrl&&Boolean(iconUrl);
   cover.classList.toggle('game-icon',iconMode);
-  fallback.hidden=false;
-  image.alt='';
-  loadArtwork(image,[coverUrl,iconUrl],revision,loaded=>{
+  const showSidebarArtwork=loaded=>{
     const loadedIcon=Boolean(iconUrl)&&loaded===iconUrl;
     cover.classList.toggle('game-icon',loadedIcon);
     image.alt=target?(loadedIcon?`${target.gameTitle} game icon`:`${target.gameTitle} cover art`):'';
-    fallback.hidden=true;
-  },()=>{cover.classList.remove('game-icon');image.alt='';fallback.hidden=false;});
+    image.dataset.preferred=preferredUrl;fallback.hidden=true;sidebarGame.classList.add('visually-hidden');
+  };
+  const showSidebarFallback=()=>{cover.classList.remove('game-icon');image.alt='';delete image.dataset.preferred;fallback.hidden=false;sidebarGame.classList.remove('visually-hidden');};
+  const loadedUrl=image.getAttribute('src');
+  if(preferredUrl&&image.dataset.preferred===preferredUrl&&[coverUrl,iconUrl].includes(loadedUrl)&&!image.hidden)showSidebarArtwork(loadedUrl);
+  else{showSidebarFallback();loadArtwork(image,[coverUrl,iconUrl],revision,showSidebarArtwork,showSidebarFallback);}
   if(!backgroundReady)loadArtwork(backdrop,[backgroundUrl],revision,()=>{workspaceBackdrop.hidden=false;},()=>{workspaceBackdrop.hidden=true;});
   if(overlayUrl&&overlay.dataset.source===overlayUrl&&!overlay.hidden)setTitleArtworkMode(titleSlot,titleHeading,overlay,true);
   else{

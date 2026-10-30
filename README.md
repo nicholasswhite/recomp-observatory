@@ -98,7 +98,7 @@ The progress graph can display supported source bytes, translation coverage, gen
 
 No game artwork is bundled with the public repository, and the dashboard does not download artwork from the internet. Unknown games use a generated monogram.
 
-Compatible local tooling can publish a `presentation/artwork.json` manifest inside a target. The dashboard automatically verifies and displays its PS3 game icon, uses an optional transparent title overlay in the hero, and applies the dedicated background across the app workspace beside the sidebar. The browser trims transparent margins before centering title artwork; if the overlay is absent, empty, or cannot be rendered, the normal text title remains visible. Changes appear on the next refresh. Version 1 uses this shape:
+Compatible local tooling can publish a `presentation/artwork.json` manifest inside a target. The dashboard automatically verifies and places its PS3 game icon in the selected-target sidebar, uses an optional transparent title overlay in the hero, and applies the dedicated background across the app workspace beside the sidebar. Manual covers use the same sidebar artwork slot. The browser trims transparent margins before aligning title artwork to the hero's left edge; if the overlay is absent, empty, or cannot be rendered, the normal text title remains visible. Changes appear on the next refresh. Version 1 uses this shape:
 
 ```json
 {

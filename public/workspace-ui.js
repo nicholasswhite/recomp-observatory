@@ -15,8 +15,6 @@ function wsChoose(id){
   wsEl('target-subtitle').textContent=target?.toolchain||'RECOMP TARGET';
   wsEl('attempt-description').textContent=target?.title||'Local recomp statistics and evidence.';
   wsEl('sidebar-game').textContent=target?.gameTitle||'RECOMP WORKSPACE';
-  wsEl('sidebar-attempt').textContent=target?.title||'Select an attempt';
-  wsEl('sidebar-path').textContent=target?.root||'';
   wsEl('footer-target').textContent=target?`${target.gameTitle} / ${target.title}`:'LOCAL WORKSPACE';
   document.title=target?`${target.gameTitle} · ${target.title} · Recomp Observatory`:'Recomp Observatory';
   try{localStorage.setItem('observatory-target',id);}catch{}
@@ -44,8 +42,8 @@ async function initializeWorkspace(preferred){
 
 function renderTarget(d){
   const t=d.target;
-  const labels={'game-title':t.gameTitle,'sidebar-game':t.gameTitle,'sidebar-attempt':t.title,
-    'sidebar-path':t.root,'attempt-description':t.title,'target-subtitle':t.toolchain,
+  const labels={'game-title':t.gameTitle,'sidebar-game':t.gameTitle,
+    'attempt-description':t.title,'target-subtitle':t.toolchain,
     'footer-target':`${t.gameTitle} / ${t.title}`,'reader-description':d.capabilities.description,
     'target-status':'Observing this attempt'};
   Object.entries(labels).forEach(([id,label])=>wsEl(id).textContent=label);

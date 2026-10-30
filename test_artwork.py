@@ -117,25 +117,35 @@ class ArtworkTests(unittest.TestCase):
         self.assertLessEqual(sum(path.stat().st_size for path in files),limit)
         self.assertEqual(current['iconUrl'],f'/artwork/auto/{second_digest}.png')
         self.assertNotIn(str((self.root/'first').resolve()),self.ws.artwork_cache)
-    def test_dedicated_background_is_global_and_not_hero_or_cover_fallback(self):
+    def test_dedicated_background_and_target_context_have_separate_roles(self):
         public=Path(__file__).parent/'public'
         markup=(public/'index.html').read_text(encoding='utf-8')
         self.assertLess(markup.index('id="workspace-backdrop"'),markup.index('<aside class="sidebar">'))
-        hero=markup[markup.index('<div class="game-identity">'):markup.index('<a id="cover-credit"')]
+        sidebar=markup[markup.index('<aside class="sidebar">'):markup.index('</aside>')]
+        hero=markup[markup.index('<div class="game-identity">'):markup.index('<div id="error-banner"')]
         self.assertNotIn('id="game-backdrop"',hero)
-        self.assertIn('id="game-overlay"',hero)
-        self.assertIn('id="game-title-slot"',hero)
-        self.assertIn('id="game-title-heading"',hero)
+        self.assertIn('id="game-cover"',sidebar)
+        self.assertIn('id="sidebar-game"',sidebar)
+        for element in ('target-subtitle','attempt-description','target-status','updated','cover-credit','game-overlay','game-title-slot','game-title-heading'):
+            self.assertNotIn(f'id="{element}"',sidebar)
+            self.assertIn(f'id="{element}"',hero)
+        self.assertNotIn('id="game-cover"',hero)
+        self.assertNotIn('id="sidebar-attempt"',markup)
+        self.assertNotIn('id="sidebar-path"',markup)
         self.assertLess(hero.index('id="game-overlay"'),hero.index('id="game-title-heading"'))
         script=(public/'branding.js').read_text(encoding='utf-8')
         self.assertIn('loadArtwork(backdrop,[backgroundUrl]',script)
         self.assertNotIn('loadArtwork(backdrop,[backgroundUrl,coverUrl',script)
         self.assertIn("backdrop.getAttribute('src')===backgroundUrl",script)
+        self.assertIn("image.dataset.preferred===preferredUrl",script)
+        self.assertIn("image.closest('.side-game-art')",script)
         self.assertIn('visibleAlphaBounds',script)
         self.assertIn("heading.classList.toggle('visually-hidden',enabled)",script)
         theme=(public/'ps3-theme.css').read_text(encoding='utf-8')
         self.assertNotIn('.game-overlay{position:absolute',theme)
         self.assertIn('.game-title-slot.has-title-art',theme)
+        self.assertIn('.side-game-context',theme)
+        self.assertIn('justify-content:flex-start',theme)
     def test_active_formats_and_arbitrary_paths_are_rejected(self):
         for value in ['data:image/svg+xml;base64,PHN2Zy8+','data:image/png;base64,'+base64.b64encode(b'not an image'*3).decode()]:
             with self.assertRaises(ValueError):save_cover(value,self.root/'artwork')
