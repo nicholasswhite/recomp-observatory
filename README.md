@@ -3,13 +3,15 @@
 [![CI](https://github.com/nicholasswhite/recomp-observatory/actions/workflows/ci.yml/badge.svg)](https://github.com/nicholasswhite/recomp-observatory/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-A local, read-only dashboard for tracking game recompilation projects, translation coverage, successful build receipts, implementation evidence, and progress over time.
+A local, read-only dashboard for tracking PlayStation 3 game recompilation projects, translation coverage, successful build receipts, implementation evidence, and progress over time.
 
-Recomp Observatory can group several games and several recompilation attempts in one workspace. It reads supported report formats and repository metadata, keeps each target's history isolated, and makes unknown values explicit. It never treats emitted code, compiled units, function mappings, or a historical runtime sample as proof that a game is complete or playable.
+> **Current platform scope: PlayStation 3 only.** The included readers, processor metrics, and evidence model are built around PS3 PPU/SPU recompilation workflows. The architecture can be extended later, but other platforms are not currently supported without a dedicated reader and evidence contract.
+
+Recomp Observatory does not recompile games itself. It observes reports and repository metadata produced by separate recompilation toolchains. It can group several PS3 games and several recompilation attempts in one workspace, keeps each target's history isolated, and makes unknown values explicit. It never treats emitted code, compiled units, function mappings, or a historical runtime sample as proof that a game is complete or playable.
 
 ## Highlights
 
-- Multiple games and recompilation attempts in one dashboard.
+- Multiple PS3 games and recompilation attempts in one dashboard.
 - Five-second UI refresh with persistent, target-specific history.
 - PPU/SPU translation coverage and separately scoped raw-SPU telemetry.
 - Successful-build growth, source/build freshness, and implementation-receipt milestones.
@@ -66,6 +68,8 @@ Discovery inspects at most 1,000 directories to depth four and skips common buil
 For precise boundaries, add an `observatory.project.json` file to a repository. Start from [observatory.project.example.json](observatory.project.example.json). Relative target roots are resolved from the manifest directory. Attempts for the same game should share a `gameId`; each target must have a unique `id`.
 
 ## Report readers
+
+All built-in readers are intended for PlayStation 3 recompilation projects. The metadata-only fallback can display an unknown layout, but it does not provide support or progress measurements for another platform.
 
 | Reader | Scope |
 | --- | --- |
