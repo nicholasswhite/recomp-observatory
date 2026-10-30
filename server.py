@@ -1,7 +1,9 @@
 """Local, read-only observatory for multiple recompilation projects."""
 from __future__ import annotations
 import argparse
+import hashlib
 import json
+import stat
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -9,6 +11,7 @@ from pathlib import Path
 from urllib.parse import urlsplit, parse_qs
 from workspace import Workspace, discover
 from folders import browse_folders
+from pathguard import is_linklike, is_safe_entry
 
 BASE = Path(__file__).resolve().parent
 PUBLIC = BASE / 'public'
@@ -56,13 +59,32 @@ class Handler(BaseHTTPRequestHandler):
                 return
             self.send_payload(payload, 'application/json')
         elif path.startswith('/artwork/'):
-            from artwork import CUSTOM
+            from artwork import AUTO, CUSTOM, IMAGE_LIMIT
             name=path[len('/artwork/'):]
-            if name.startswith('custom/') and CUSTOM.fullmatch(name[7:]):asset=BASE/'work/artwork'/name[7:]
+            artwork_root=BASE/'work/artwork'
+            if name.startswith('custom/') and CUSTOM.fullmatch(name[7:]):asset=artwork_root/name[7:]
+            elif name.startswith('auto/') and AUTO.fullmatch(name[5:]):asset=artwork_root/'auto'/name[5:]
             else:self.send_error(404);return
-            if not asset.is_file() or asset.is_symlink():self.send_error(404);return
+            try:
+                if is_linklike(artwork_root):
+                    raise OSError('Unsafe artwork root')
+                details=asset.stat()
+                limit=IMAGE_LIMIT if name.startswith('auto/') else 4*1024*1024
+                if (not stat.S_ISREG(details.st_mode) or not 24<=details.st_size<=limit or
+                        is_linklike(asset) or not is_safe_entry(asset,artwork_root)):
+                    raise OSError('Unsafe artwork')
+                data=asset.read_bytes()
+                after=asset.stat()
+                signature=lambda value:(value.st_dev,value.st_ino,value.st_size,value.st_mtime_ns,getattr(value,'st_ctime_ns',0))
+                if (len(data)!=details.st_size or signature(details)!=signature(after) or
+                        (name.startswith('auto/') and
+                         (not data.startswith(b'\x89PNG\r\n\x1a\n') or
+                          hashlib.sha256(data).hexdigest()!=asset.stem))):
+                    raise OSError('Invalid artwork')
+            except OSError:
+                self.send_error(404);return
             mime={'.jpg':'image/jpeg','.png':'image/png','.webp':'image/webp'}[asset.suffix]
-            self.send_payload(asset.read_bytes(),mime)
+            self.send_payload(data,mime,cache_control='public, max-age=31536000, immutable')
         elif path in routes:
             filename, mime = routes[path]
             self.send_payload((PUBLIC / filename).read_bytes(), mime)
@@ -96,11 +118,11 @@ class Handler(BaseHTTPRequestHandler):
         except (ValueError, TypeError, OSError) as error:
             self.send_payload(json.dumps({'error':str(error)}).encode(), 'application/json', 400)
 
-    def send_payload(self, data, mime, status=200):
+    def send_payload(self, data, mime, status=200, cache_control='no-store'):
         self.send_response(status)
         self.send_header('Content-Type', mime)
         self.send_header('Content-Length', str(len(data)))
-        self.send_header('Cache-Control', 'no-store')
+        self.send_header('Cache-Control', cache_control)
         self.send_header('X-Content-Type-Options', 'nosniff')
         self.send_header('Referrer-Policy', 'no-referrer')
         self.send_header('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'self'; base-uri 'none'")

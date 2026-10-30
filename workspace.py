@@ -10,7 +10,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 from adapters import collect_target
-from artwork import default_branding, validate_metadata, save_cover, cover_url
+from artwork import default_branding, validate_metadata, save_cover, artwork_url, automatic_branding
 from folders import local_folder
 from pathguard import is_contained, is_linklike, is_safe_entry
 
@@ -117,6 +117,7 @@ class Workspace:
         self.config, self.state = Path(config), Path(state)
         self.lock = threading.RLock()
         self.cache = {}
+        self.artwork_cache = {}
         self.targets = []
         self.name = 'Recomp workspace'
         self.games = {}
@@ -132,8 +133,18 @@ class Workspace:
             self.games = value.get('games',{}) if isinstance(value.get('games',{}),dict) else {}
 
     def presentation(self,target):
-        branding={**default_branding(target),**self.games.get(target['gameId'],{})}
-        branding['coverUrl']=cover_url(branding.get('coverAsset',''))
+        automatic = automatic_branding(target['root'], self.state.parent/'artwork', self.artwork_cache)
+        manual = self.games.get(target['gameId'], {})
+        branding = {**default_branding(target), **automatic, **manual}
+        branding['coverUrl'] = artwork_url(branding.get('coverAsset', ''))
+        for role in ('icon', 'overlay', 'background'):
+            branding[f'{role}Url'] = artwork_url(branding.get(f'{role}Asset', ''))
+        if branding['coverUrl']:
+            branding['artworkOrigin'] = 'manual'
+        elif automatic:
+            branding['artworkOrigin'] = 'target'
+        else:
+            branding['artworkOrigin'] = ''
         return {**target,'branding':branding}
 
     def set_branding(self,game_id,data):

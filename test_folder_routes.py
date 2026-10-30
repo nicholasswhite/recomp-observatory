@@ -1,12 +1,18 @@
 """Exercise folder-picker HTTP boundaries against an isolated loopback server."""
+import base64
+import hashlib
 import http.client
 import json
+import tempfile
 import threading
 import unittest
 from http.server import ThreadingHTTPServer
+from pathlib import Path
 from unittest.mock import patch
 
 import server
+
+PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jTioAAAAASUVORK5CYII='
 
 
 class FolderRouteTests(unittest.TestCase):
@@ -97,6 +103,26 @@ class FolderRouteTests(unittest.TestCase):
         self.assertEqual(headers['Content-Type'], 'text/javascript; charset=utf-8')
         self.assertTrue(body)
         self.browser.assert_not_called()
+
+    def test_verified_automatic_artwork_cache_is_the_only_auto_route(self):
+        scratch=Path(__file__).parent/'work';scratch.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=scratch) as folder:
+            base=Path(folder);data=base64.b64decode(PNG);digest=hashlib.sha256(data).hexdigest()
+            cache=base/'work'/'artwork'/'auto';cache.mkdir(parents=True)
+            (cache/f'{digest}.png').write_bytes(data)
+            with patch.object(server,'BASE',base):
+                status,headers,body=self.request(method='GET',path=f'/artwork/auto/{digest}.png')
+                self.assertEqual((status,body),(200,data))
+                self.assertEqual(headers['Content-Type'],'image/png')
+                self.assertIn('immutable',headers['Cache-Control'])
+                self.assertEqual(headers['X-Content-Type-Options'],'nosniff')
+                corrupt=bytearray(data);corrupt[-5]^=1;(cache/f'{digest}.png').write_bytes(corrupt)
+                status,_,_=self.request(method='GET',path=f'/artwork/auto/{digest}.png')
+                self.assertEqual(status,404)
+                for invalid in ('not-a-hash.png',f'{digest}.jpg','../artwork.json'):
+                    with self.subTest(invalid=invalid):
+                        status,_,_=self.request(method='GET',path='/artwork/auto/'+invalid)
+                        self.assertEqual(status,404)
 
     def test_workspace_file_is_confined_to_ignored_work_tree(self):
         accepted = server.workspace_file('work/secondary-workspace.json')

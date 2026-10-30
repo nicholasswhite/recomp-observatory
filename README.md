@@ -96,9 +96,31 @@ The progress graph can display supported source bytes, translation coverage, gen
 
 ## Artwork and branding
 
-No game artwork is bundled with the public repository. Unknown games use a generated monogram. Use **Edit artwork** to add a local JPEG, PNG, or WebP cover up to 4 MiB, plus optional studio, subtitle, and source-credit metadata.
+No game artwork is bundled with the public repository, and the dashboard does not download artwork from the internet. Unknown games use a generated monogram.
 
-Uploaded artwork is stored under ignored local workspace data and is excluded from source packages.
+Compatible local tooling can publish a `presentation/artwork.json` manifest inside a target. The dashboard automatically verifies and displays its PS3 game icon, transparent title overlay, and background on the next refresh. Version 1 uses this shape:
+
+```json
+{
+  "schema": "ps3-workbench/artwork-v1",
+  "artwork": {
+    "icon": {
+      "path": "ICON0.PNG",
+      "mime": "image/png",
+      "byteCount": 47468,
+      "width": 320,
+      "height": 176,
+      "sha256": "<64 lowercase hexadecimal characters>"
+    }
+  }
+}
+```
+
+`overlay` and `background` use the same fields. Paths are relative to `presentation/`. The reader accepts bounded PNG files only, rejects links and path escapes, verifies the declared byte count, dimensions, and SHA-256, and copies validated bytes into its ignored local cache. Target repositories remain read-only.
+
+Use **Edit artwork** to add a local JPEG, PNG, or WebP cover up to 4 MiB, plus optional studio, subtitle, and source-credit metadata. A manual cover replaces the detected icon while the target background and title overlay remain available; **Restore automatic artwork** removes the manual override.
+
+Automatic and uploaded artwork stays under ignored local workspace data and is excluded from source packages.
 
 ## Development
 

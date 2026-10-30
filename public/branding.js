@@ -1,21 +1,49 @@
 'use strict';
-let brandingTarget=null;
+let brandingTarget=null,brandingRevision=0;
+
+function localArtworkUrl(value){
+  return typeof value==='string'&&/^\/artwork\/(?:custom\/[a-f0-9]{64}\.(?:jpg|png|webp)|auto\/[a-f0-9]{64}\.png)$/.test(value)?value:'';
+}
+
+function loadArtwork(element,candidates,revision,onready,onfail){
+  const urls=[...new Set(candidates.filter(Boolean))];
+  element.onload=null;element.onerror=null;element.hidden=true;element.removeAttribute('src');
+  const attempt=index=>{
+    if(revision!==brandingRevision)return;
+    if(index>=urls.length){if(onfail)onfail();return;}
+    const url=urls[index],probe=new Image();
+    probe.onload=()=>{
+      if(revision!==brandingRevision)return;
+      element.src=url;element.hidden=false;
+      if(onready)onready(url);
+    };
+    probe.onerror=()=>attempt(index+1);
+    probe.src=url;
+  };
+  attempt(0);
+}
+
 function renderGameBranding(target){
   brandingTarget=target||null;
-  const b=target?.branding||{}, image=document.getElementById('game-cover'),backdrop=document.getElementById('game-backdrop');
+  const revision=++brandingRevision,b=target?.branding||{};
+  const image=document.getElementById('game-cover'),backdrop=document.getElementById('game-backdrop'),overlay=document.getElementById('game-overlay');
   const cover=image.closest('.game-cover'),fallback=document.getElementById('cover-placeholder'),credit=document.getElementById('cover-credit');
   document.getElementById('game-brand-line').textContent=[b.studio,b.subtitle].filter(Boolean).join(' · ');
-  fallback.textContent=(target?.gameTitle||'GAME').split(/\s+/).slice(0,3).map(w=>w[0]).join('').toUpperCase();
-  const url=typeof b.coverUrl==='string'&&b.coverUrl.startsWith('/artwork/')?b.coverUrl:'';
-  cover.classList.remove('cropped-case');
-  image.hidden=true;backdrop.hidden=true;fallback.hidden=false;
-  if(url){
-    image.alt=`${target.gameTitle} cover art`;
-    image.onload=()=>{if(image.getAttribute('src')===url){image.hidden=false;fallback.hidden=true;}};
-    image.onerror=()=>{image.hidden=true;fallback.hidden=false;backdrop.hidden=true;};
-    image.src=url;backdrop.src=url;backdrop.hidden=false;
-    if(image.complete&&image.naturalWidth){image.hidden=false;fallback.hidden=true;}
-  }else{image.removeAttribute('src');backdrop.removeAttribute('src');image.alt='';}
+  fallback.textContent=(target?.gameTitle||'GAME').split(/\s+/).slice(0,3).map(word=>word[0]).join('').toUpperCase();
+  const coverUrl=localArtworkUrl(b.coverUrl),iconUrl=localArtworkUrl(b.iconUrl);
+  const backgroundUrl=localArtworkUrl(b.backgroundUrl),overlayUrl=localArtworkUrl(b.overlayUrl);
+  const iconMode=!coverUrl&&Boolean(iconUrl);
+  cover.classList.toggle('game-icon',iconMode);
+  fallback.hidden=false;
+  image.alt='';
+  loadArtwork(image,[coverUrl,iconUrl],revision,loaded=>{
+    const loadedIcon=Boolean(iconUrl)&&loaded===iconUrl;
+    cover.classList.toggle('game-icon',loadedIcon);
+    image.alt=target?(loadedIcon?`${target.gameTitle} game icon`:`${target.gameTitle} cover art`):'';
+    fallback.hidden=true;
+  },()=>{cover.classList.remove('game-icon');image.alt='';fallback.hidden=false;});
+  loadArtwork(backdrop,[backgroundUrl,coverUrl,iconUrl],revision);
+  loadArtwork(overlay,[overlayUrl],revision);
   const source=typeof b.source==='string'&&/^https?:\/\//.test(b.source)?b.source:'';
   credit.hidden=!source;
   if(source)credit.href=source;else credit.removeAttribute('href');
@@ -28,9 +56,10 @@ document.addEventListener('DOMContentLoaded',()=>{
     panel.hidden=!panel.hidden;
     if(!panel.hidden){
       el('repo-manager').hidden=true;
-      const b=brandingTarget?.branding||{};
+      const b=brandingTarget?.branding||{},hasAutomatic=Boolean(b.iconUrl||b.overlayUrl||b.backgroundUrl);
       el('brand-studio').value=b.studio||'';el('brand-subtitle').value=b.subtitle||'';el('brand-source').value=b.source||'';
-      el('brand-cover-file').value='';el('artwork-message').textContent='Settings apply to every attempt for this game.';
+      el('brand-cover-file').value='';
+      el('artwork-message').textContent=hasAutomatic?(b.coverUrl?'Manual cover is active; restoring automatic artwork will reveal the detected game icon.':'Automatically detected PS3 artwork is active. A manual cover overrides the game icon.'):'Settings apply to every attempt for this game.';
     }
   });
   el('artwork-close').addEventListener('click',()=>{panel.hidden=true;});
