@@ -1,0 +1,50 @@
+name: Bug report
+description: Report a reproducible problem without sharing proprietary project data.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "Do not attach game binaries, firmware, keys, saves, generated game code, proprietary reports, or private filesystem paths. Use a synthetic fixture when possible."
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Operating system and Python version
+    validations:
+      required: true
+  - type: dropdown
+    id: adapter
+    attributes:
+      label: Report reader
+      options:
+        - independent-reports-v1
+        - ps3recomp-manifest-v1
+        - inventory-v1
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      description: Redact personal paths and use synthetic data.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true

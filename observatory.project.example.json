@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "targets": [
+    {
+      "id": "my-game-native",
+      "gameId": "my-game",
+      "gameTitle": "My Game",
+      "title": "Standalone port",
+      "toolchain": "Independent tooling",
+      "root": "./native-attempt",
+      "adapter": "independent-reports-v1",
+      "reports": {}
+    },
+    {
+      "id": "my-game-other",
+      "gameId": "my-game",
+      "gameTitle": "My Game",
+      "title": "Other recomp attempt",
+      "toolchain": "Custom tooling",
+      "root": "./other-attempt",
+      "adapter": "inventory-v1",
+      "reports": {}
+    }
+  ]
+}
