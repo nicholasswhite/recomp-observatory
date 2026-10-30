@@ -117,6 +117,17 @@ class ArtworkTests(unittest.TestCase):
         self.assertLessEqual(sum(path.stat().st_size for path in files),limit)
         self.assertEqual(current['iconUrl'],f'/artwork/auto/{second_digest}.png')
         self.assertNotIn(str((self.root/'first').resolve()),self.ws.artwork_cache)
+    def test_dedicated_background_is_global_and_not_hero_or_cover_fallback(self):
+        public=Path(__file__).parent/'public'
+        markup=(public/'index.html').read_text(encoding='utf-8')
+        self.assertLess(markup.index('id="workspace-backdrop"'),markup.index('<aside class="sidebar">'))
+        hero=markup[markup.index('<div class="game-identity">'):markup.index('<a id="cover-credit"')]
+        self.assertNotIn('id="game-backdrop"',hero)
+        self.assertIn('id="game-overlay"',hero)
+        script=(public/'branding.js').read_text(encoding='utf-8')
+        self.assertIn('loadArtwork(backdrop,[backgroundUrl]',script)
+        self.assertNotIn('loadArtwork(backdrop,[backgroundUrl,coverUrl',script)
+        self.assertIn("backdrop.getAttribute('src')===backgroundUrl",script)
     def test_active_formats_and_arbitrary_paths_are_rejected(self):
         for value in ['data:image/svg+xml;base64,PHN2Zy8+','data:image/png;base64,'+base64.b64encode(b'not an image'*3).decode()]:
             with self.assertRaises(ValueError):save_cover(value,self.root/'artwork')

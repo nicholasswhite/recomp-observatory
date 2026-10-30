@@ -27,11 +27,14 @@ function renderGameBranding(target){
   brandingTarget=target||null;
   const revision=++brandingRevision,b=target?.branding||{};
   const image=document.getElementById('game-cover'),backdrop=document.getElementById('game-backdrop'),overlay=document.getElementById('game-overlay');
+  const workspaceBackdrop=document.getElementById('workspace-backdrop');
   const cover=image.closest('.game-cover'),fallback=document.getElementById('cover-placeholder'),credit=document.getElementById('cover-credit');
   document.getElementById('game-brand-line').textContent=[b.studio,b.subtitle].filter(Boolean).join(' · ');
   fallback.textContent=(target?.gameTitle||'GAME').split(/\s+/).slice(0,3).map(word=>word[0]).join('').toUpperCase();
   const coverUrl=localArtworkUrl(b.coverUrl),iconUrl=localArtworkUrl(b.iconUrl);
   const backgroundUrl=localArtworkUrl(b.backgroundUrl),overlayUrl=localArtworkUrl(b.overlayUrl);
+  const backgroundReady=Boolean(backgroundUrl)&&backdrop.getAttribute('src')===backgroundUrl&&!backdrop.hidden&&!workspaceBackdrop.hidden;
+  if(!backgroundReady)workspaceBackdrop.hidden=true;
   const iconMode=!coverUrl&&Boolean(iconUrl);
   cover.classList.toggle('game-icon',iconMode);
   fallback.hidden=false;
@@ -42,7 +45,7 @@ function renderGameBranding(target){
     image.alt=target?(loadedIcon?`${target.gameTitle} game icon`:`${target.gameTitle} cover art`):'';
     fallback.hidden=true;
   },()=>{cover.classList.remove('game-icon');image.alt='';fallback.hidden=false;});
-  loadArtwork(backdrop,[backgroundUrl,coverUrl,iconUrl],revision);
+  if(!backgroundReady)loadArtwork(backdrop,[backgroundUrl],revision,()=>{workspaceBackdrop.hidden=false;},()=>{workspaceBackdrop.hidden=true;});
   loadArtwork(overlay,[overlayUrl],revision);
   const source=typeof b.source==='string'&&/^https?:\/\//.test(b.source)?b.source:'';
   credit.hidden=!source;

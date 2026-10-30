@@ -5,6 +5,7 @@ All notable changes to Recomp Observatory are documented here.
 ## Unreleased
 
 - Added verified local PS3 presentation manifests for automatic game icons, title overlays, and backgrounds, with manual-cover overrides and share-safe caching.
+- Extended detected game backgrounds across the app workspace while keeping the navigation sidebar and dashboard panels readable.
 
 ## 0.1.0 — 2026-10-30
 

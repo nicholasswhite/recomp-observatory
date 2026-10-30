@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark"><title>Recomp Observatory</title>
-  <link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/ps3-theme.css?v=automatic-artwork"><script src="/branding.js?v=automatic-artwork" defer></script><script src="/ps3-details.js" defer></script><script src="/progress.js?v=work-visibility" defer></script><script src="/workspace-ui.js?v=exclusive-panels" defer></script><script src="/folders.js" defer></script><script src="/app.js?v=work-visibility" defer></script>
+  <link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/ps3-theme.css?v=workspace-backdrop"><script src="/branding.js?v=workspace-backdrop" defer></script><script src="/ps3-details.js" defer></script><script src="/progress.js?v=work-visibility" defer></script><script src="/workspace-ui.js?v=exclusive-panels" defer></script><script src="/folders.js" defer></script><script src="/app.js?v=work-visibility" defer></script>
 </head>
 <body>
 <div class="console-atmosphere" aria-hidden="true">
@@ -12,6 +12,7 @@
   <g fill="none" stroke="url(#wave-glow)"><path d="M-160 700 C250 300 580 870 1010 540 S1600 330 1970 560" stroke-width="1.2"/><path d="M-160 714 C250 314 580 884 1010 554 S1600 344 1970 574" stroke-width=".6"/><path d="M-160 730 C250 330 580 900 1010 570 S1600 360 1970 590" stroke-width=".4"/><path d="M-100 590 C300 820 580 290 1080 470 S1640 730 1950 350" stroke-width=".7"/></g>
   <g fill="#becff1" opacity=".3"><circle cx="278" cy="454" r="1.2"/><circle cx="680" cy="325" r="1"/><circle cx="1145" cy="290" r="1.3"/><circle cx="1390" cy="644" r="1"/><circle cx="1630" cy="236" r=".8"/></g></svg>
 </div>
+<div id="workspace-backdrop" class="workspace-backdrop" aria-hidden="true" hidden><img id="game-backdrop" alt="" aria-hidden="true" hidden></div>
 <aside class="sidebar">
   <a class="brand" href="#overview" aria-label="Observatory home"><span class="brand-icon" aria-hidden="true"><svg viewBox="0 0 42 42"><path d="M10 12h23M7 21h23M4 30h23" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M31 10l-8 22" fill="none" stroke="currentColor" stroke-width="1" opacity=".35"/></svg></span><span>RECOMP<br><small>OBSERVATORY</small></span></a>
   <div class="side-caption" id="sidebar-game">RECOMP WORKSPACE</div>
@@ -35,7 +36,7 @@
   </dialog>
   <p id="selection-status" role="status" class="metric-note">Loading workspace…</p><div id="target-content" hidden>
   <section id="overview" class="section">
-    <div class="game-identity"><img id="game-backdrop" class="game-backdrop" alt="" aria-hidden="true" hidden><img id="game-overlay" class="game-overlay" alt="" aria-hidden="true" hidden><div class="page-heading"><figure class="game-cover"><img id="game-cover" hidden><span id="cover-placeholder" aria-hidden="true">GAME</span></figure><div class="game-title-block"><div class="eyebrow"><span id="target-subtitle">RECOMP TARGET</span></div><h1><span id="game-title">Select a game</span><span class="title-dot">.</span></h1><p id="game-brand-line" class="game-brand-line"></p><p class="intro"><span id="attempt-description">Local recomp statistics and evidence.</span></p></div><div class="project-status"><span class="status-ring"></span> <span><span id="target-status">Observing repository</span><small id="updated">Waiting for local evidence…</small></span></div></div>
+    <div class="game-identity"><img id="game-overlay" class="game-overlay" alt="" aria-hidden="true" hidden><div class="page-heading"><figure class="game-cover"><img id="game-cover" hidden><span id="cover-placeholder" aria-hidden="true">GAME</span></figure><div class="game-title-block"><div class="eyebrow"><span id="target-subtitle">RECOMP TARGET</span></div><h1><span id="game-title">Select a game</span><span class="title-dot">.</span></h1><p id="game-brand-line" class="game-brand-line"></p><p class="intro"><span id="attempt-description">Local recomp statistics and evidence.</span></p></div><div class="project-status"><span class="status-ring"></span> <span><span id="target-status">Observing repository</span><small id="updated">Waiting for local evidence…</small></span></div></div>
 <a id="cover-credit" class="cover-credit" target="_blank" rel="noopener noreferrer" hidden>Artwork source ↗</a></div>
     <div id="error-banner" class="banner error" hidden></div>
     <article class="panel overall-panel" aria-labelledby="overall-title">
